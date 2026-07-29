@@ -31,12 +31,13 @@
     impact:       '17_final_reveal_clean_impact.wav',
     hum:          '18_reading_hum_plus_20.wav',
     choice:       '19_two_perspectives.wav',
-    ascension:    '20_reveal_ascension.wav'
+    ascension:    '20_ascension_final.wav'
   };
   var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1 };
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
+  var AUDIO_VER = '5';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */
@@ -61,7 +62,7 @@
   function load(name){
     if (buffers[name] || loading[name]) return;
     loading[name] = true;
-    fetch(FILES[name])
+    fetch(FILES[name] + '?a=' + AUDIO_VER)
       .then(function(r){ if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(function(ab){ return ctx.decodeAudioData(ab); })
       .then(function(buf){
