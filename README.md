@@ -2,7 +2,8 @@
 
 Base: index v19.2 / SIDEREAL v19.4 / TROPICAL v18.13 (all current fixes intact).
 This package adds the centralized EMERGE_SOUND engine and the 18 approved WAV cues.
-Stamps: SCENE 1 v19.3 sound v2, SIDEREAL v19.5, TROPICAL v18.14. Routes bumped to ?v=1905 / ?v=1814.
+Stamps: SCENE 1 v19.4 sound v2b, SIDEREAL v19.6, TROPICAL v18.15. Routes ?v=1906 / ?v=1815.
+v2b: reveal pages now hold dark with a "tap to reveal" prompt; the first tap unlocks audio and starts the chart drawing in the same instant, so construction, sweep, and planet tokens are always heard in sync. Tap cue (04) reduced 25%.
 
 Deploy the WHOLE folder together. The WAVs must sit next to the HTML files.
 Note: 15_fast_screen_sweep_FINAL.wav is the approved quieter sweep under its deploy name.

@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.3 · sound v2</div>
+<div id="ver">SCENE 1 · v19.4 · sound v2b</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1848,7 +1848,7 @@ document.querySelectorAll('.syscard').forEach(card => {
 
     setTimeout(() => {
       if (stopGenesis) stopGenesis();
-      const next = sys === 'sidereal' ? 'sidereal-reveal.html?v=1905' : 'tropical-reveal.html?v=1814';   // v19.2: cache-bust — bump these with each reveal-file stamp
+      const next = sys === 'sidereal' ? 'sidereal-reveal.html?v=1906' : 'tropical-reveal.html?v=1815';   // v19.2: cache-bust — bump these with each reveal-file stamp
       console.log('[EMERGE FLOW] 10. genesis complete — proceeding to', next);
       try { EMERGE_SOUND.stopAll(); } catch(_){}
       location.href = next;

@@ -37,6 +37,27 @@
   }
   #whisper.show { opacity:1; }
 
+  /* v-sound-gate: the page arrives dark and still; a tap begins the drawing */
+  #soundGate {
+    position:fixed;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    z-index:16;
+    color:rgba(226,196,122,0.9);
+    font-family:-apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+    font-size:15px; font-weight:300;
+    letter-spacing:0.32em;
+    text-transform:lowercase;
+    text-align:center; width:92vw;
+    opacity:0;
+    animation:gateIn 2.4s ease 0.6s forwards, gateBreathe 4.2s ease-in-out 3s infinite;
+    pointer-events:none;
+    transition:opacity 1.1s ease;
+  }
+  #soundGate.gone { opacity:0 !important; animation:none; }
+  @keyframes gateIn { to { opacity:1; } }
+  @keyframes gateBreathe { 0%,100% { opacity:1; } 50% { opacity:0.55; } }
+
   /* locate beat */
   #locate {
     position:fixed; inset:0; z-index:12;
@@ -552,6 +573,7 @@
 </head>
 <body>
 <div id="stage"></div>
+<div id="soundGate">tap to reveal</div>
 <div id="whisper">the sky has always been here</div>
 <div id="locate"><div class="h"></div><div class="v"></div><div class="ring"></div></div>
 <div id="coords">40.7128&#176; N &nbsp;&#183;&nbsp; 74.0060&#176; W<br><span class="place">NEW YORK &#183; NEW YORK</span></div>
@@ -712,7 +734,7 @@ var BIRTH = __ok ? {
 console.log('[EMERGE FLOW] 5. sidereal-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 document.getElementById('stamp').textContent =
-  'SIDEREAL v19.5 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'SIDEREAL v19.6 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }
@@ -1323,12 +1345,15 @@ var T = {
 
 window.addEventListener('pointerdown', function(){
   try { EMERGE_SOUND.unlock(); EMERGE_SOUND.loop('breath'); } catch(_){}
+  t0 = performance.now();
+  var g = document.getElementById('soundGate');
+  if (g){ g.classList.add('gone'); setTimeout(function(){ g.remove(); }, 1400); }
 }, { once:true, passive:true });
 
-var t0 = performance.now();
+var t0 = null;
 function frame(now){
   requestAnimationFrame(frame);
-  var t = (now - t0)/1000*SPEED;
+  var t = (t0 === null) ? 0 : (now - t0)/1000*SPEED;
   try { EMERGE_SOUND.tick({ construction: T.sq, sweep: T.sweepA, tokens: T.grahaA }, t); } catch(_){}
 
   /* background drifts forever */
