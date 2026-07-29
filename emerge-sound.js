@@ -23,19 +23,19 @@
     arrival:      '07_earth_arrival.wav',
     orbit:        '08_earth_rotation_silent_orbit_FINAL.wav',
     found:        '09_location_found.wav',
-    pulse:        '10_c_low_digital_pulses.wav',
     harmony:      '11_birth_data_complete_fixed_harmony.wav',
     calc:         '12_tropical_calculation.wav',
-    breath:       '13_breath_c__distant_vacuum_breath.wav',
     construction: '14_b_magnetic_construction.wav',
     sweep:        '15_fast_screen_sweep_FINAL.wav',
     tokens:       '16_b_unified_planet_tokens.wav',
     impact:       '17_final_reveal_clean_impact.wav',
-    hum:          '18_reading_hum_plus_20.wav'
+    hum:          '18_reading_hum_plus_20.wav',
+    choice:       '19_two_perspectives.wav',
+    ascension:    '20_reveal_ascension.wav'
   };
-  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, breath:1, hum:1 };
+  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1 };
   /* one-shots that briefly duck the void bed so they read clearly */
-  var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1 };
+  var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
@@ -110,7 +110,26 @@
     } catch(_){}
   }
 
+  /* digit-entry tone: generated, not sampled — one fixed clock-set beep,
+     identical pitch and level on every press */
+  function beep(){
+    if (!ready()) return;
+    var t = ctx.currentTime;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0, t);
+    g.gain.linearRampToValueAtTime(0.20, t + 0.002);
+    g.gain.setValueAtTime(0.20, t + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + 0.085);
+    g.connect(master);
+    var o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = 620;
+    var o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = 1240;
+    var g2 = ctx.createGain(); g2.gain.value = 0.18;
+    o1.connect(g); o2.connect(g2); g2.connect(g);
+    o1.start(t); o2.start(t); o1.stop(t + 0.1); o2.stop(t + 0.1);
+  }
+
   function play(name, opts){
+    if (name === 'pulse') return beep();
     if (!ready() || !buffers[name]) return;      /* locked or not decoded: drop */
     opts = opts || {};
     var n = makeSource(name, opts.pan);

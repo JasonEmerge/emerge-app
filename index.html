@@ -422,7 +422,7 @@
 
 
 </style>
-<script src="emerge-sound.js"></script>
+<script src="emerge-sound.js?v=3"></script>
 </head>
 <body>
 <div id="stars"></div>
@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.4 · sound v2b</div>
+<div id="ver">SCENE 1 · v19.7 · sound v3</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1468,7 +1468,7 @@ function computeGenesisProfile(system){
   bar.addEventListener('click', () => inp.focus());
   inp.addEventListener('input', () => {
     let dig = inp.value.replace(/\D/g, '').slice(0, 8);      // MMDDYYYY
-    try { if (dig.length) EMERGE_SOUND.grain('pulse'); } catch(_){}
+    try { if (dig.length) EMERGE_SOUND.play('pulse'); } catch(_){}
     let out = dig.slice(0,2);
     if (dig.length >= 3) out += ' – ' + dig.slice(2,4);
     if (dig.length >= 5) out += ' – ' + dig.slice(4,8);
@@ -1507,7 +1507,7 @@ function computeGenesisProfile(system){
   });
   inp.addEventListener('input', () => {
     let dig = inp.value.replace(/\D/g, '').slice(0, 4);   // HHMM
-    try { if (dig.length) EMERGE_SOUND.grain('pulse'); } catch(_){}
+    try { if (dig.length) EMERGE_SOUND.play('pulse'); } catch(_){}
     let out = dig.slice(0,2);
     if (dig.length >= 3) out += ' : ' + dig.slice(2,4);
     inp.value = out;
@@ -1558,6 +1558,7 @@ function computeGenesisProfile(system){
           choiceOpen = true;
           if (gvEl){ gvEl.style.display = 'none'; gvEl.setAttribute('aria-hidden', 'true'); }
           document.getElementById('systembar').classList.add('show');
+          try { EMERGE_SOUND.stopLoop('voidatm', 2.5); EMERGE_SOUND.loop('choice'); } catch(_){}
         };
         try {
           const bp = window.__birthPlace || {};
@@ -1822,7 +1823,10 @@ document.querySelectorAll('.syscard').forEach(card => {
     try { window.EMERGE_PROFILE = computeGenesisProfile(sys); }
     catch(e){ window.EMERGE_PROFILE = null; console.log('[EMERGE FLOW] genesis profile skipped:', e); }
     const stopGenesis = runGenesis();
-    try { EMERGE_SOUND.stopLoop('voidatm', 0.8); EMERGE_SOUND.loop('calc'); } catch(_){}
+    try { EMERGE_SOUND.stopLoop('choice', 0.9); EMERGE_SOUND.loop('calc'); } catch(_){}
+    // v3: the calculation layer breathes out before the page turns —
+    // no hard cut into the reveal's held silence
+    setTimeout(() => { try { EMERGE_SOUND.stopLoop('calc', 1.9); } catch(_){} }, 2600);
 
     const bp = window.__birthPlace || {};
     const tp = (window.__birthTime || '12:00 PM').split(/[: ]/);
@@ -1848,7 +1852,7 @@ document.querySelectorAll('.syscard').forEach(card => {
 
     setTimeout(() => {
       if (stopGenesis) stopGenesis();
-      const next = sys === 'sidereal' ? 'sidereal-reveal.html?v=1906' : 'tropical-reveal.html?v=1815';   // v19.2: cache-bust — bump these with each reveal-file stamp
+      const next = sys === 'sidereal' ? 'sidereal-reveal.html?v=1909' : 'tropical-reveal.html?v=1818';   // v19.2: cache-bust — bump these with each reveal-file stamp
       console.log('[EMERGE FLOW] 10. genesis complete — proceeding to', next);
       try { EMERGE_SOUND.stopAll(); } catch(_){}
       location.href = next;
