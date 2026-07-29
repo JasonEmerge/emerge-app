@@ -172,8 +172,8 @@
   /* prompt: "Your chart is revealed." + REVEAL MY CHART */
   #revealPrompt {
     position:fixed; left:0; right:0; z-index:22;
-    bottom:calc(env(safe-area-inset-bottom,0px) + 34px);
-    display:flex; flex-direction:column; align-items:center; gap:20px;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 6px);   /* v19.4: prompt dropped lower, matches TROPICAL v18.12 */
+    display:flex; flex-direction:column; align-items:center; gap:14px;
     opacity:0; pointer-events:none;
     transition:opacity 1.1s ease;
   }
@@ -398,6 +398,7 @@
     touch-action:pan-y; -webkit-overflow-scrolling:touch;
   }
   #summaryStage { display:flex; }
+  #summaryStage[hidden] { display:none !important; }   /* ghost card fix: hidden must beat display:flex */
   #cardEmerge { margin:auto; }   /* centered when it fits, scrollable when it does not */
   @media (max-width:700px){
     #summaryStage { padding-top:calc(env(safe-area-inset-top,0px) + 26vh); }
@@ -547,6 +548,7 @@
   .rp-sum-ic svg { width:24px; height:24px; display:block; }
   .rp-sum-row h3 { margin:2px 0 7px; }
 </style>
+<script src="emerge-sound.js"></script>
 </head>
 <body>
 <div id="stage"></div>
@@ -567,7 +569,6 @@
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <div id="revealPrompt">
-  <div class="line">Your chart is revealed.</div>
   <button id="revealBtn" type="button">REVEAL MY CHART<span class="sweep" aria-hidden="true"></span></button>
 </div>
 <div id="summaryStage">
@@ -711,7 +712,7 @@ var BIRTH = __ok ? {
 console.log('[EMERGE FLOW] 5. sidereal-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 document.getElementById('stamp').textContent =
-  'SIDEREAL v19.2 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'SIDEREAL v19.5 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }
@@ -1294,7 +1295,7 @@ for (var hh = 1; hh <= 12; hh++){
         'font-family':'Georgia, serif', 'font-size':String(24*fsz), fill:'#d9b45b' }, node);
       ab.textContent = '(' + gg.ab + ')';
     }
-    grahaEls.push({ node:node, x:cx2, y:cy2, name:(gg.key||'') });
+    grahaEls.push({ node:node, x:cx2, y:cy2 });
   }
 }
 
@@ -1320,10 +1321,15 @@ var T = {
   grahaA: 15.8, grahaStep: 0.55, grahaDur: 1.1
 };
 
+window.addEventListener('pointerdown', function(){
+  try { EMERGE_SOUND.unlock(); EMERGE_SOUND.loop('breath'); } catch(_){}
+}, { once:true, passive:true });
+
 var t0 = performance.now();
 function frame(now){
   requestAnimationFrame(frame);
   var t = (now - t0)/1000*SPEED;
+  try { EMERGE_SOUND.tick({ construction: T.sq, sweep: T.sweepA, tokens: T.grahaA }, t); } catch(_){}
 
   /* background drifts forever */
   camera.rotation.y = 0.35 + t*0.0045;
@@ -1376,7 +1382,6 @@ function frame(now){
 
   /* NEW: 3D CHART SUMMARY REVEAL — completion watch + animation hook */
   if (!chartRevealFired && t > CHART_DONE_T){ chartRevealFired = true; onChartRevealComplete(); }
-  try { if (window.EMERGE_SOUND_TICK) window.EMERGE_SOUND_TICK(t, T, grahaEls, CHART_DONE_T); } catch(_){}
   if (summaryTick) summaryTick(now);
 
   renderer.render(scene, camera);
@@ -2540,6 +2545,7 @@ function buildResultPage(){
 function openCompleteChartResult(){
   if (resultOpened) return;
   resultOpened = true;
+  try { EMERGE_SOUND.stopLoop('breath', 2.0); EMERGE_SOUND.loop('hum'); } catch(_){}
   revealBtn.setAttribute('disabled', 'true');
   if (!resultBuilt){
     try { buildResultPage(); resultBuilt = true; }
@@ -2587,6 +2593,7 @@ function stageCardShell(){
 function finishRevealTransition(fadeMs){
   if (resultOpened) return;
   resultOpened = true;
+  try { EMERGE_SOUND.stopLoop('breath', 2.0); EMERGE_SOUND.loop('hum'); } catch(_){}
   bodyEl.classList.add('result-leaving');
   window.setTimeout(function(){
     summaryTick = null;
@@ -2606,6 +2613,7 @@ function finishRevealTransition(fadeMs){
 function startRevealTransition(){
   if (resultOpened || chartSummaryRevealStarted) return;
   chartSummaryRevealStarted = true;
+  try { EMERGE_SOUND.play('impact'); EMERGE_SOUND.haptic(12); } catch(_){}
   revealBtn.setAttribute('disabled', 'true');
 
   if (!resultBuilt){
@@ -2656,61 +2664,6 @@ ctaEl.addEventListener('click', function(){
 /* ================== END NEW: 3D CHART SUMMARY REVEAL ================== */
 
 
-})();
-</script>
-<script src="emerge-sound.js"></script>
-<script>
-/* ---------- SOUND WIRING · Chart Reveal (Final Sound System V4) ----------
-   Sound follows the actual drawing timeline (t), never fixed timeouts.
-   Near-silence carries "the sky has always been here"; magnetic locks
-   construct the wheel; the sweep crosses once; unified low tokens place
-   each graha from its real screen position; the clean impact reveals the
-   chart; then the Reading Hum takes over and becomes nearly invisible. */
-(function(){
-  if (!window.EMERGE_SOUND) return;
-  var S = window.EMERGE_SOUND;
-  try { S.init(); S.setScene('entry'); } catch(_){}
-  /* iOS may hold the context suspended until the first touch — the engine
-     resumes itself on the first pointerdown and the Void fades in then. */
-
-  var fired = {};
-  function once(key, fn){ if (!fired[key]){ fired[key] = 1; try { fn(); } catch(_){} } }
-
-  window.EMERGE_SOUND_TICK = function(t, T, grahaEls, DONE){
-    if (!T) return;
-    /* Cue 13 — intentional near-silence, breath released ~250ms early */
-    if (t > T.whisperIn - 0.35) once('whisper', function(){ S.emit('text:skyAlwaysHere'); });
-    /* locate beat — one faint acknowledgement, then quiet */
-    if (t > T.locA) once('loc', function(){ S.emit('wheel:signs'); });
-    /* Cue 14 — wheel construction follows the real draw animation */
-    for (var i = 0; i < 4; i++){ (function(i){
-      if (t > T.sq + i*0.22) once('ring'+i, function(){ S.emit('wheel:ring', { index:i }); });
-    })(i); }
-    for (var j = 0; j < 2; j++){ (function(j){
-      if (t > T.diag + j*0.22) once('diag'+j, function(){ S.emit('wheel:division', { index:j }); });
-    })(j); }
-    for (var k = 0; k < 4; k++){ (function(k){
-      if (t > T.diam + (k%4)*0.22) once('diam'+k, function(){ S.emit('wheel:division', { index:k+2 }); });
-    })(k); }
-    /* sign/house headers — one restrained grouped placement, not a scale */
-    if (t > T.numsA) once('nums', function(){ S.emit('wheel:signs'); });
-    /* Cue 15 — one fast sweep, following the visual */
-    if (t > T.sweepA) once('sweep', function(){ S.emit('screen:sweep', { direction:'lr' }); });
-    /* Cue 16 — unified tokens; stereo placement from real screen x */
-    if (grahaEls && grahaEls.length){
-      var xs = grahaEls.map(function(g){ return g.x; });
-      var mn = Math.min.apply(null, xs), mx = Math.max.apply(null, xs), rg = (mx - mn) || 1;
-      for (var g2 = 0; g2 < grahaEls.length; g2++){ (function(g2){
-        var dly = g2 === 0 ? 0 : 0.7 + g2*T.grahaStep;
-        if (t > T.grahaA + dly + T.grahaDur*0.5) once('graha'+g2, function(){
-          var ge = grahaEls[g2];
-          S.emit('planet:reveal', { planet: (ge.name || ge.id || 'graha'), x: ((ge.x - mn)/rg)*2 - 1 });
-        });
-      })(g2); }
-    }
-    /* Cue 17 — the clean impact, then the reading atmosphere (Cue 18) */
-    if (DONE && t > DONE) once('revealed', function(){ S.emit('chart:revealed'); });
-  };
 })();
 </script>
 </body>

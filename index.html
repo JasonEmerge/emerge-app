@@ -187,7 +187,7 @@
   text-shadow:0 1px 5px rgba(0,0,0,.9); }
 #finale.depart { transition:opacity 1.1s ease; opacity:0; pointer-events:none; }
 /* ---------- v13 restored onboarding (donor: Scene 2 v100) ---------- */
-  #bdaybar { position:fixed; left:50%; transform:translate(-50%, 24px); width:250px; bottom:15vh; z-index:14;
+  #bdaybar { position:fixed; left:50%; transform:translate(-50%, 24px); width:250px; bottom:25vh; z-index:14;
     display:flex; align-items:center; justify-content:flex-start; gap:10px;
     padding:9px 14px; border-radius:12px; cursor:pointer; overflow:visible;
     background:linear-gradient(180deg, rgba(52,42,18,.65), rgba(30,24,10,.72));
@@ -204,7 +204,7 @@
     text-align:center; text-transform:uppercase; }
   #bdaybar #bd-typed::placeholder { color:#9C7A5F; letter-spacing:.22em; }
   #bdaybar.done { opacity:0 !important; transform:translate(-50%,-30px) scale(.92); pointer-events:none !important; }
-  #timebar { position:fixed; left:50%; transform:translate(-50%, 24px); width:250px; bottom:15vh; z-index:14;
+  #timebar { position:fixed; left:50%; transform:translate(-50%, 24px); width:250px; bottom:25vh; z-index:14;
     display:flex; align-items:center; justify-content:flex-start; gap:10px;
     padding:9px 14px; border-radius:12px; cursor:pointer; overflow:visible;
     background:linear-gradient(180deg, rgba(52,42,18,.65), rgba(30,24,10,.72));
@@ -223,6 +223,18 @@
   #ampm span.sel { color:#2E1B14; background:linear-gradient(110deg,#A86F55 0%,#D6A986 28%,#E8C7A6 48%,#C99378 68%,#765044 100%);
     border-color:transparent; font-weight:700; }
   #timebar.done { opacity:0 !important; transform:translate(-50%,-30px) scale(.92); pointer-events:none !important; }
+  /* v18.8 gold prompt banners — exact fn-pill treatment, one above each birth field.
+     They only mirror the bar's .show/.done classes; the bars and inputs are untouched. */
+  .bd-prompt { position:fixed; left:50%; transform:translate(-50%, 24px); z-index:14;
+    padding:14px 30px; border-radius:999px; letter-spacing:.2em; text-transform:uppercase;
+    font-size:12px; font-weight:600; color:#2B1D13; white-space:nowrap;
+    background:linear-gradient(180deg, #E8C7A6, #C99378);
+    box-shadow:0 0 30px rgba(214,169,134,.35), inset 0 1px 0 rgba(255,240,220,.6);
+    opacity:0; pointer-events:none; transition:opacity .4s ease, transform .4s ease; }
+  .bd-prompt.show { opacity:1; transform:translate(-50%, 0); }
+  .bd-prompt.done { opacity:0 !important; transform:translate(-50%,-30px) scale(.92) !important; }
+  #bdayPrompt, #timePrompt { bottom:calc(25vh + 58px); }
+  @media (max-width:380px){ .bd-prompt { font-size:11px; padding:12px 20px; letter-spacing:.16em; } }
   /* while the two paths are open, everything else yields the stage */
   body.paths-open #confirm, body.paths-open .marker { opacity:0 !important;
     transition:opacity .9s ease !important; pointer-events:none !important; }
@@ -375,7 +387,7 @@
   .gn-sphereArc { position:absolute; left:50%; top:46%; transform:translate(-50%,-50%);
     border:1px solid rgba(214,169,134,.09); border-radius:50%; pointer-events:none; }
   #genesis.show { opacity:1; pointer-events:auto; }
-  .gn-stage { position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); }
+  .gn-stage { position:absolute; inset:0; }   /* v19.1: full-viewport stage — JS coords are viewport pixels, so the swirl now plays centered */
   .gn-ring { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     border:1px solid rgba(214,169,134,.28); border-radius:50%; }
   .gn-ring.nodes { border-style:dashed; border-color:rgba(176,143,232,.35); }
@@ -410,6 +422,7 @@
 
 
 </style>
+<script src="emerge-sound.js"></script>
 </head>
 <body>
 <div id="stars"></div>
@@ -451,11 +464,13 @@
   (In-app previews block the network.)
 </div>
 
+<div id="bdayPrompt" class="bd-prompt">✦&nbsp;&nbsp;What is your date of birth?</div>
 <div id="bdaybar">
   <span class="bd-star">✦</span>
   <input type="text" id="bd-typed" inputmode="numeric" autocomplete="off"
          placeholder="MM – DD – YYYY" aria-label="Birthdate" maxlength="14">
 </div>
+<div id="timePrompt" class="bd-prompt">✦&nbsp;&nbsp;What time were you born?</div>
 <div id="timebar">
   <span class="bd-star">✦</span>
   <input type="text" id="tm-typed" inputmode="numeric" autocomplete="off"
@@ -495,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v18.7 · keyboard lift</div>
+<div id="ver">SCENE 1 · v19.3 · sound v2</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -714,15 +729,8 @@ if (typeof Globe === 'undefined') {
           : (e.alpha != null ? 360 - e.alpha : null);
     if (h == null || e.beta == null) return;
     if (!gyro) console.log('[SKY] gyro live — compass steering engaged');
-    try {
-      if (window.EMERGE_SOUND && window.__sndYaw != null) {
-        let dh = h - window.__sndYaw; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
-        const sv = Math.min(1, Math.abs(dh) / 7);
-        if (sv > 0.03) EMERGE_SOUND.emit('interaction:move', { velocity: sv, x: dh > 0 ? 0.4 : -0.4 });
-      }
-      window.__sndYaw = h;
-    } catch(_){}
     gyro = true; tYaw = h;
+    try { EMERGE_SOUND.motion(0.25); } catch(_){}
     // natural reading angle (~beta 50°) looks just above the horizon;
     // tilting the phone up toward the sky sweeps the view to the zenith
     tPitch = Math.max(-25, Math.min(85, e.beta - 38));
@@ -758,9 +766,8 @@ if (typeof Globe === 'undefined') {
       const s = 0.16 * (fov/65);                            // zoomed in = finer steering
       yawOff -= (e.clientX - drag.x) * s;
       pitchOff = Math.max(-75, Math.min(80, pitchOff + (e.clientY - drag.y) * s * 0.85));
-      try { window.EMERGE_SOUND && EMERGE_SOUND.emit('interaction:move', {
-        velocity: Math.min(1, Math.hypot(e.clientX - drag.x, e.clientY - drag.y) / 28), x: mx }); } catch(_){}
       drag.x = e.clientX; drag.y = e.clientY;
+      try { EMERGE_SOUND.motion(0.6); } catch(_){}
     }
   }, { passive:true });
   const endDrag = e => { if (drag && e.pointerId === drag.id) drag = null; };
@@ -776,8 +783,6 @@ if (typeof Globe === 'undefined') {
       const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
                            e.touches[0].clientY - e.touches[1].clientY);
       fov = Math.max(28, Math.min(100, fov * pinchD / d));  // spread = closer, pinch = wider
-      try { window.EMERGE_SOUND && EMERGE_SOUND.emit('interaction:zoom', {
-        velocity: Math.min(1, Math.abs(d - pinchD) / 30), direction: d > pinchD ? 'in' : 'out', scale: fov }); } catch(_){}
       pinchD = d;
       if (e.cancelable) e.preventDefault();
     }
@@ -973,7 +978,7 @@ function aspectAlt(base){                              // v15 responsive framing
   const f = Math.min(Math.max(0.62 + (0.55 - ar) * 0.7, 0.70), 1.15);
   return base * f;
 }
-const FRAME = { lat: 35, lng: -75, alt: aspectAlt(2.5) };   // final full Earth framing — US East Coast centered
+const FRAME = { lat: 35, lng: -75, alt: aspectAlt(5.1) };   // final full Earth framing — US East Coast centered, pulled back ~40%
 const BIRTH_CAMERA = { startAlt: 42, endAlt: FRAME.alt };
 let globeReady = false;
 // IMPORTANT: the real globe begins far away, so it is physically the tiny point.
@@ -1087,8 +1092,8 @@ function startEarthBirth(){
   document.getElementById('globeViz').style.opacity = '1';
   try { world.atmosphereAltitude(0.005); } catch(_){}
   earthBirthStart = performance.now();
+  try { EMERGE_SOUND.play('dot'); EMERGE_SOUND.play('growth'); } catch(_){}
   window.__earthBirth = earthBirthStart + 1100;   // energy motes ride the energy stage
-  try { window.EMERGE_SOUND && EMERGE_SOUND.emit('blueDot'); } catch(_){}
   requestAnimationFrame(birthFrame);
 }
 
@@ -1135,12 +1140,10 @@ function birthFrame(now){
   if (BIRTH_LIGHTS.amb) BIRTH_LIGHTS.amb.intensity = BIRTH_LIGHTS.ambFinal * lerp(0.55, 1, birthState.light);
   if (BIRTH_LIGHTS.dir) BIRTH_LIGHTS.dir.intensity = BIRTH_LIGHTS.dirFinal * lerp(0.35, 1, birthState.light);
 
-  try { window.EMERGE_SOUND && EMERGE_SOUND.emit('earth:formation', { progress: p / 0.665 }); } catch(_){}
-
   // v7: camera arrival moved up to 0.645 (~2s sooner); light done by 0.62.
   // The birth ends right at arrival and hands straight to the drop.
   if (p < 0.665) { requestAnimationFrame(birthFrame); return; }
-  try { window.EMERGE_SOUND && EMERGE_SOUND.emit('earth:arrival'); } catch(_){}
+  try { EMERGE_SOUND.play('arrival'); } catch(_){}
 
   // shot 11 — everything slows; the viewer simply witnesses Earth
   setTimeout(() => {
@@ -1185,6 +1188,7 @@ setTimeout(() => document.getElementById('enterPrompt').classList.add('ready'), 
 document.getElementById('curtain').addEventListener('click', () => {
   if (phase !== 'void') return;
   phase = 'explore';
+  try { EMERGE_SOUND.unlock(); EMERGE_SOUND.loop('voidatm'); EMERGE_SOUND.play('fold'); } catch(_){}
   const curtain = document.getElementById('curtain');
   curtain.style.pointerEvents = 'none';
   curtain.style.transition = 'opacity 1.4s ease';
@@ -1221,7 +1225,8 @@ window.addEventListener('pointercancel', () => {
 function beginBirth(){
   if (phase !== 'invited') return;
   phase = 'birth';
-  try { window.EMERGE_SOUND && EMERGE_SOUND.emit('emerge:tap'); } catch(_){}
+  try { navigator.vibrate && navigator.vibrate(10); } catch(_){}
+  try { EMERGE_SOUND.play('tap'); } catch(_){}
   // all UI dissolves
   document.getElementById('invite').classList.add('gone');
   // a beat of pure void, then the birth of a world — the engine owns everything
@@ -1338,6 +1343,7 @@ function sceneComplete(){
   function selectResult(it) {
     if (chosen) return;
     chosen = true;
+    try { EMERGE_SOUND.play('found'); } catch(_){}
     inputEl.value = it.formatted;
     // focus NOW, inside the tap: iOS will only raise the keyboard during a user gesture
     try { document.getElementById('bd-typed').focus({ preventScroll:true }); } catch(_){}
@@ -1376,23 +1382,18 @@ function sceneComplete(){
     finaleEl.classList.add('depart');
 
     console.log('[EMERGE FLOW] 4. camera flight to birthplace on the existing globe');
-    try { window.EMERGE_SOUND && EMERGE_SOUND.emit('ui:select'); } catch(_){}
-    world.pointOfView({ lat: it.lat, lng: it.lon, altitude: aspectAlt(1.15) }, 2800);
+    try { EMERGE_SOUND.loop('orbit'); } catch(_){}
+    world.pointOfView({ lat: it.lat, lng: it.lon, altitude: aspectAlt(2.25) }, 2800);   // v19.1: arrival pulled back ~30% for date/time entry
 
     const startShift = GLOBE.shiftY, t0 = performance.now();
-    let sndP = 0;
     (function riseV12(now){
       const p = Math.min((now - t0) / 2800, 1);
       GLOBE.shiftY = startShift * (1 - easeInOutCubicV12(p));
       layoutGlobe();
-      // Silent Orbit: intensity follows actual rotational velocity of the flight
-      try { const vel = Math.min(1, Math.abs(p - sndP) * 60 * Math.sin(Math.PI * p) * 1.4);
-        window.EMERGE_SOUND && EMERGE_SOUND.emit('earth:rotation', { velocity: vel, direction: it.lon > 0 ? 0.5 : -0.5, progress: p });
-        sndP = p; } catch(_){}
       if (p < 1) requestAnimationFrame(riseV12);
       else {
+        try { EMERGE_SOUND.stopLoop('orbit', 1.4); } catch(_){}
         console.log('[EMERGE FLOW] 5. arrived — birthplace framed, beginning birth-date entry');
-        try { window.EMERGE_SOUND && EMERGE_SOUND.emit('location:found', { x: 0 }); } catch(_){}
         document.getElementById('bdaybar').classList.add('show');
         requestAnimationFrame(() => {
           const birthDateInput = document.getElementById('bd-typed');
@@ -1467,6 +1468,7 @@ function computeGenesisProfile(system){
   bar.addEventListener('click', () => inp.focus());
   inp.addEventListener('input', () => {
     let dig = inp.value.replace(/\D/g, '').slice(0, 8);      // MMDDYYYY
+    try { if (dig.length) EMERGE_SOUND.grain('pulse'); } catch(_){}
     let out = dig.slice(0,2);
     if (dig.length >= 3) out += ' – ' + dig.slice(2,4);
     if (dig.length >= 5) out += ' – ' + dig.slice(4,8);
@@ -1505,6 +1507,7 @@ function computeGenesisProfile(system){
   });
   inp.addEventListener('input', () => {
     let dig = inp.value.replace(/\D/g, '').slice(0, 4);   // HHMM
+    try { if (dig.length) EMERGE_SOUND.grain('pulse'); } catch(_){}
     let out = dig.slice(0,2);
     if (dig.length >= 3) out += ' : ' + dig.slice(2,4);
     inp.value = out;
@@ -1538,6 +1541,7 @@ function computeGenesisProfile(system){
     if (dig.length === 4 && ampm) {
       window.__birthTime = dig.slice(0,2) + ':' + dig.slice(2,4) + ' ' + ampm;
       console.log('[Birth data] time:', window.__birthTime);
+      try { EMERGE_SOUND.play('harmony'); } catch(_){}
       inp.blur();
       setTimeout(() => {
         document.getElementById('timebar').classList.add('done');
@@ -1584,14 +1588,14 @@ function computeGenesisProfile(system){
 // Uses window.visualViewport (not 100vh) so iOS Safari's keyboard-shrunken viewport is
 // measured directly. While the birthday or time input is focused AND the keyboard is
 // actually open, the bar is pinned at ~42% of the visible height. When the step closes
-// or the keyboard drops, all inline overrides are cleared and the original bottom:15vh
+// or the keyboard drops, all inline overrides are cleared and the original bottom:35vh
 // layout returns untouched. Nothing else in the sequence is modified.
 (function(){
   const vv = window.visualViewport;
   if (!vv) return;                                  // no visualViewport: original layout stands
   const bars = [
-    { bar: document.getElementById('bdaybar'), inp: document.getElementById('bd-typed') },
-    { bar: document.getElementById('timebar'), inp: document.getElementById('tm-typed') }
+    { bar: document.getElementById('bdaybar'), inp: document.getElementById('bd-typed'), prompt: document.getElementById('bdayPrompt') },
+    { bar: document.getElementById('timebar'), inp: document.getElementById('tm-typed'), prompt: document.getElementById('timePrompt') }
   ];
   const KB_MIN = 120;                               // lost px that means the keyboard is open
   const keyboardOpen = () => (window.innerHeight - vv.height) > KB_MIN;
@@ -1605,12 +1609,24 @@ function computeGenesisProfile(system){
     b.bar.style.bottom = 'auto';
     b.bar.style.transform = 'translate(-50%, -50%)';
     b.bar.style.zIndex = '1000';
+    if (b.prompt){
+      b.prompt.style.top = (targetCenter - 34) + 'px';   // banner bottom edge sits ~11px above the bar
+      b.prompt.style.bottom = 'auto';
+      b.prompt.style.transform = 'translate(-50%, -100%)';
+      b.prompt.style.zIndex = '1000';
+    }
   }
   function release(b){
     b.bar.style.top = '';
     b.bar.style.bottom = '';
     b.bar.style.transform = '';
     b.bar.style.zIndex = '';
+    if (b.prompt){
+      b.prompt.style.top = '';
+      b.prompt.style.bottom = '';
+      b.prompt.style.transform = '';
+      b.prompt.style.zIndex = '';
+    }
   }
   function position(){
     const a = activeEntry();
@@ -1626,6 +1642,25 @@ function computeGenesisProfile(system){
   });
 })();
 
+// ---------- v18.8 prompt banners: each banner mirrors its bar's .show/.done ----------
+// No flow code was changed; the banners simply watch the classes the existing
+// sequence already sets on #bdaybar and #timebar, so timing, autofocus, and
+// step progression are byte-identical to v18.7.
+(function(){
+  const pairs = [
+    { bar: document.getElementById('bdaybar'), prompt: document.getElementById('bdayPrompt') },
+    { bar: document.getElementById('timebar'), prompt: document.getElementById('timePrompt') }
+  ];
+  const sync = p => {
+    const done = p.bar.classList.contains('done');
+    p.prompt.classList.toggle('done', done);
+    p.prompt.classList.toggle('show', !done && p.bar.classList.contains('show'));
+  };
+  pairs.forEach(p => {
+    sync(p);
+    new MutationObserver(() => sync(p)).observe(p.bar, { attributes:true, attributeFilter:['class'] });
+  });
+})();
 
 const GN_STYLE = {
   Sun:     { c:'#F5A623', sz:30, mat:'radial-gradient(circle at 40% 36%, #FFF3C4 0%, #FFD24D 30%, #F5A623 58%, #C86A0E 85%)', anim:'sunlive 3.2s ease-in-out infinite' },
@@ -1781,14 +1816,13 @@ document.querySelectorAll('.syscard').forEach(card => {
     const sys = card.dataset.v;
     window.__zodiacSystem = sys;
     console.log('[EMERGE FLOW] 8. door tapped — system:', sys);
-    try { window.EMERGE_SOUND && (EMERGE_SOUND.emit('chart:selected', { system: sys }),
-                                  EMERGE_SOUND.emit('calculation:start')); } catch(_){}
     document.getElementById('systembar').style.display = 'none';
     window.__genesisActive = true;
     document.getElementById('genesis').classList.add('show');
     try { window.EMERGE_PROFILE = computeGenesisProfile(sys); }
     catch(e){ window.EMERGE_PROFILE = null; console.log('[EMERGE FLOW] genesis profile skipped:', e); }
     const stopGenesis = runGenesis();
+    try { EMERGE_SOUND.stopLoop('voidatm', 0.8); EMERGE_SOUND.loop('calc'); } catch(_){}
 
     const bp = window.__birthPlace || {};
     const tp = (window.__birthTime || '12:00 PM').split(/[: ]/);
@@ -1814,9 +1848,9 @@ document.querySelectorAll('.syscard').forEach(card => {
 
     setTimeout(() => {
       if (stopGenesis) stopGenesis();
-      try { window.EMERGE_SOUND && EMERGE_SOUND.emit('calculation:complete'); } catch(_){}
-      const next = sys === 'sidereal' ? 'sidereal-reveal.html' : 'tropical-reveal.html';
+      const next = sys === 'sidereal' ? 'sidereal-reveal.html?v=1905' : 'tropical-reveal.html?v=1814';   // v19.2: cache-bust — bump these with each reveal-file stamp
       console.log('[EMERGE FLOW] 10. genesis complete — proceeding to', next);
+      try { EMERGE_SOUND.stopAll(); } catch(_){}
       location.href = next;
     }, 4600);
     console.log('[Birth data] complete:', {
@@ -1826,47 +1860,6 @@ document.querySelectorAll('.syscard').forEach(card => {
 });
 
 } // end guard
-</script>
-<script src="emerge-sound.js"></script>
-<script>
-/* ---------- SOUND WIRING · Scene 1 (Final Sound System V4) ----------
-   The animation above emits its own events inline; this block covers the
-   hooks that live inside closures: audio unlock on the first tap, digit
-   entry, AM/PM completion, the chart-choice opening, and the irregular
-   calculation micro-pulses driven by the genesis status line. */
-(function(){
-  if (!window.EMERGE_SOUND) return;
-  var S = window.EMERGE_SOUND;
-
-  /* Cue 1 — the Void begins on the first tap (iOS requires the gesture). */
-  var curtain = document.getElementById('curtain');
-  if (curtain) curtain.addEventListener('click', function(){ S.init(); S.setScene('void'); }, { once:true });
-
-  /* Cue 10 — one muted pulse per meaningful digit; the OS keyboard keeps
-     its own alphabetic feedback, so only date/time fields are voiced. */
-  var bd = document.getElementById('bd-typed'), tm = document.getElementById('tm-typed');
-  if (bd) bd.addEventListener('input', function(){ S.emit('digit:input', { field:'date' }); });
-  if (tm) tm.addEventListener('input', function(){ S.emit('digit:input', { field:'time' }); });
-
-  /* Cue 11 — Birth Data Complete fires when AM/PM confirms the time. */
-  var tbar = document.getElementById('timebar');
-  if (tbar) new MutationObserver(function(){
-    if (tbar.classList.contains('done') && !tbar.__snd){ tbar.__snd = 1; S.emit('birthData:complete'); }
-  }).observe(tbar, { attributes:true, attributeFilter:['class'] });
-
-  /* Chart-choice screen — the sound opens slightly, stays dark. */
-  var sysbar = document.getElementById('systembar');
-  if (sysbar) new MutationObserver(function(){
-    if (sysbar.classList.contains('show') && !sysbar.__snd){ sysbar.__snd = 1; S.emit('chart:choice'); }
-  }).observe(sysbar, { attributes:true, attributeFilter:['class'] });
-
-  /* Cue 12 — calculation micro-pulses respond to the actual genesis
-     status changes (ephemeris → lagna → graha → nakshatras → assembling). */
-  var gst = document.getElementById('gn-status');
-  if (gst) new MutationObserver(function(){
-    if (window.__genesisActive) S.emit('calculation:progress', {});
-  }).observe(gst, { childList:true, characterData:true, subtree:true });
-})();
 </script>
 </body>
 </html>
