@@ -129,6 +129,22 @@
     o1.start(t); o2.start(t); o1.stop(t + 0.1); o2.stop(t + 0.1);
   }
 
+  /* one soft low beat per house number as it lands on the wheel */
+  function numpulse(){
+    if (!ready()) return;
+    var t = ctx.currentTime;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + 0.28);
+    g.connect(master);
+    [[85,1.0],[170,0.6],[255,0.25]].forEach(function(p){
+      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = p[0];
+      var og = ctx.createGain(); og.gain.value = p[1];
+      o.connect(og); og.connect(g); o.start(t); o.stop(t + 0.3);
+    });
+  }
+
   function play(name, opts){
     if (name === 'pulse') return beep();
     if (!ready() || !buffers[name]) return;      /* locked or not decoded: drop */
@@ -231,6 +247,6 @@
   window.EMERGE_SOUND = {
     unlock: unlock, play: play, grain: grain,
     loop: startLoop, stopLoop: stopLoop, stopAll: stopAll,
-    motion: motion, tick: tick, haptic: haptic
+    motion: motion, tick: tick, haptic: haptic, numpulse: numpulse
   };
 })();
