@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.13 · sound v5b</div>
+<div id="ver">SCENE 1 · v19.14 · chart planets in genesis</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1663,6 +1663,239 @@ function computeGenesisProfile(system){
   });
 })();
 
+/* ============================================================
+   PLANET DISC RENDERER — dimensional bodies for the wheel
+   (procedural; canvas-shaded spheres, embedded as data URLs)
+   ============================================================ */
+function texCanvas(w, h, draw){
+  var c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  return c;
+}
+function speckle(g, w, h, n, colors, rMin, rMax, alpha){
+  for (var i = 0; i < n; i++){
+    g.fillStyle = colors[(Math.random()*colors.length)|0];
+    g.globalAlpha = alpha*(0.4 + Math.random()*0.6);
+    var r = rMin + Math.random()*(rMax - rMin);
+    g.beginPath(); g.arc(Math.random()*w, Math.random()*h, r, 0, Math.PI*2); g.fill();
+  }
+  g.globalAlpha = 1;
+}
+function banded(palette, wobble){
+  return texCanvas(512, 256, function(g,w,h){
+    var y = 0, i = 0;
+    while (y < h){
+      var bh = 8 + Math.random()*26;
+      g.fillStyle = palette[i % palette.length];
+      g.fillRect(0, y, w, bh + 2);
+      y += bh; i++;
+    }
+    if (wobble){
+      g.globalAlpha = 0.22;
+      for (var k = 0; k < 40; k++){
+        g.strokeStyle = palette[(Math.random()*palette.length)|0];
+        g.lineWidth = 2 + Math.random()*5;
+        g.beginPath();
+        var yy = Math.random()*h; g.moveTo(0, yy);
+        for (var x = 0; x <= w; x += 32) g.lineTo(x, yy + Math.sin(x*0.02 + k)*6);
+        g.stroke();
+      }
+      g.globalAlpha = 1;
+    }
+    speckle(g, w, h, 260, palette, 1, 3, 0.25);
+  });
+}
+var SURF = {
+  Sun: texCanvas(512, 256, function(g,w,h){
+    var grd = g.createLinearGradient(0,0,0,h);
+    grd.addColorStop(0,'#ffd985'); grd.addColorStop(0.5,'#ffab36'); grd.addColorStop(1,'#f78f22');
+    g.fillStyle = grd; g.fillRect(0,0,w,h);
+    speckle(g, w, h, 520, ['#ffe6a8','#ff8c1e','#ffc45e'], 2, 9, 0.35);
+  }),
+  Moon: texCanvas(512, 256, function(g,w,h){
+    g.fillStyle = '#b6b3ad'; g.fillRect(0,0,w,h);
+    speckle(g, w, h, 700, ['#8f8c86','#cfccc6','#a3a09a'], 1, 4, 0.5);
+    for (var i = 0; i < 90; i++){
+      var x = Math.random()*w, y = Math.random()*h, r = 3 + Math.random()*14;
+      g.fillStyle = 'rgba(118,115,110,0.55)';
+      g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+      g.strokeStyle = 'rgba(216,213,206,0.5)'; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(x,y,r,Math.PI*1.1,Math.PI*1.9); g.stroke();
+    }
+  }),
+  Mercury: texCanvas(512, 256, function(g,w,h){
+    g.fillStyle = '#8d8177'; g.fillRect(0,0,w,h);
+    speckle(g, w, h, 900, ['#6f655c','#a79a8e','#7c7168'], 1, 6, 0.5);
+  }),
+  Venus: texCanvas(512, 256, function(g,w,h){
+    g.fillStyle = '#d9b478'; g.fillRect(0,0,w,h);
+    g.globalAlpha = 0.3;
+    for (var i = 0; i < 26; i++){
+      g.strokeStyle = ['#eccf9a','#c49a5c','#e3c088'][(Math.random()*3)|0];
+      g.lineWidth = 6 + Math.random()*16;
+      g.beginPath();
+      var yy = Math.random()*h; g.moveTo(0, yy);
+      for (var x = 0; x <= w; x += 40) g.lineTo(x, yy + Math.sin(x*0.015 + i)*14);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }),
+  Mars: texCanvas(512, 256, function(g,w,h){
+    g.fillStyle = '#b5502f'; g.fillRect(0,0,w,h);
+    speckle(g, w, h, 500, ['#8e3a20','#cf6a41','#a04328'], 2, 10, 0.4);
+    g.fillStyle = 'rgba(240,235,225,0.7)';
+    g.beginPath(); g.ellipse(w*0.5, 8, 70, 12, 0, 0, Math.PI*2); g.fill();
+  }),
+  Jupiter: banded(['#c9a06a','#e8d3ae','#a5713f','#dbb886','#8f5f36','#e2c79a'], true),
+  Saturn:  banded(['#d8c294','#e9dbb8','#c2a877','#e0cda2'], false),
+  Uranus: texCanvas(512, 256, function(g,w,h){
+    var grd = g.createLinearGradient(0,0,0,h);
+    grd.addColorStop(0,'#b8e2e8'); grd.addColorStop(0.35,'#8fd0d9');
+    grd.addColorStop(0.7,'#7cc4cf'); grd.addColorStop(1,'#a5dade');
+    g.fillStyle = grd; g.fillRect(0,0,w,h);
+    g.globalAlpha = 0.12;
+    for (var i = 0; i < 10; i++){
+      g.fillStyle = i % 2 ? '#c8ecef' : '#6fb8c4';
+      var yy = Math.random()*h;
+      g.fillRect(0, yy, w, 10 + Math.random()*22);
+    }
+    g.globalAlpha = 1;
+  }),
+  Neptune: texCanvas(512, 256, function(g,w,h){
+    var grd = g.createLinearGradient(0,0,0,h);
+    grd.addColorStop(0,'#3a63d9'); grd.addColorStop(0.5,'#2a4cc0'); grd.addColorStop(1,'#3358cc');
+    g.fillStyle = grd; g.fillRect(0,0,w,h);
+    g.globalAlpha = 0.25;
+    for (var i = 0; i < 14; i++){
+      g.strokeStyle = ['#5b82ea','#1f3ba5','#4a70df'][(Math.random()*3)|0];
+      g.lineWidth = 4 + Math.random()*12;
+      g.beginPath();
+      var yy = Math.random()*h; g.moveTo(0, yy);
+      for (var x = 0; x <= w; x += 40) g.lineTo(x, yy + Math.sin(x*0.02 + i)*8);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+    g.fillStyle = 'rgba(14,26,80,0.65)';
+    g.beginPath(); g.ellipse(w*0.6, h*0.42, 44, 22, -0.2, 0, Math.PI*2); g.fill();
+    g.fillStyle = 'rgba(220,232,255,0.35)';
+    g.beginPath(); g.ellipse(w*0.32, h*0.66, 30, 7, 0.1, 0, Math.PI*2); g.fill();
+  }),
+  Pluto: texCanvas(512, 256, function(g,w,h){
+    g.fillStyle = '#c9a582'; g.fillRect(0,0,w,h);
+    speckle(g, w, h, 600, ['#8a6b50','#e0c4a0','#a58060','#77543c'], 2, 9, 0.4);
+    g.fillStyle = 'rgba(238,222,198,0.75)';
+    g.beginPath(); g.ellipse(w*0.55, h*0.62, 74, 46, 0.3, 0, Math.PI*2); g.fill();
+    g.fillStyle = 'rgba(90,62,44,0.5)';
+    g.beginPath(); g.ellipse(w*0.2, h*0.3, 52, 30, -0.2, 0, Math.PI*2); g.fill();
+  })
+};
+/* shaded sphere impostor */
+function discURL(name, px){
+  var pad = name === 'Sun' ? 0.9 : 0.25;
+  var W = Math.round(px*(1 + pad*2)), H = W;
+  var c = texCanvas(W, H, function(g){
+    var cx = W/2, cy = H/2, r = px/2;
+    if (name === 'Sun'){
+      var halo = g.createRadialGradient(cx,cy,r*0.5, cx,cy,r*2.6);
+      halo.addColorStop(0,'rgba(255,190,90,0.55)');
+      halo.addColorStop(0.4,'rgba(255,160,60,0.18)');
+      halo.addColorStop(1,'rgba(255,150,50,0)');
+      g.fillStyle = halo; g.fillRect(0,0,W,H);
+    }
+    g.save();
+    g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.clip();
+    g.drawImage(SURF[name], cx-r, cy-r, r*2, r*2);
+    var sh = g.createRadialGradient(cx - r*0.45, cy - r*0.45, r*0.1, cx, cy, r*1.15);
+    sh.addColorStop(0, 'rgba(255,255,245,0.16)');
+    sh.addColorStop(0.55, 'rgba(0,0,0,0)');
+    sh.addColorStop(1, 'rgba(2,3,10,0.88)');
+    g.fillStyle = sh; g.fillRect(0,0,W,H);
+    g.restore();
+    g.strokeStyle = 'rgba(224,180,100,0.22)';
+    g.lineWidth = 1;
+    g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.stroke();
+  });
+  return c.toDataURL('image/png');
+}
+function saturnURL(px){
+  var W = Math.round(px*2.1), H = Math.round(px*1.35);
+  var c = texCanvas(W, H, function(g){
+    var cx = W/2, cy = H/2, r = px/2;
+    var tilt = -16*DEG;
+    g.translate(cx, cy); g.rotate(tilt); g.translate(-cx, -cy);
+    function ringArc(a0, a1){
+      for (var i = 0; i < 3; i++){
+        var rr = r*(1.45 + i*0.22), rh = rr*0.30;
+        g.strokeStyle = 'rgba(224,203,158,' + (0.55 - i*0.14) + ')';
+        g.lineWidth = r*0.11;
+        g.beginPath(); g.ellipse(cx, cy, rr, rh, 0, a0, a1); g.stroke();
+      }
+    }
+    ringArc(Math.PI*0.02, Math.PI*0.98);
+    g.translate(cx, cy); g.rotate(-tilt); g.translate(-cx, -cy);
+    g.save();
+    g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.clip();
+    g.drawImage(SURF.Saturn, cx-r, cy-r, r*2, r*2);
+    var sh = g.createRadialGradient(cx - r*0.45, cy - r*0.45, r*0.1, cx, cy, r*1.15);
+    sh.addColorStop(0, 'rgba(255,255,245,0.15)');
+    sh.addColorStop(0.55, 'rgba(0,0,0,0)');
+    sh.addColorStop(1, 'rgba(2,3,10,0.88)');
+    g.fillStyle = sh; g.fillRect(0,0,W,H);
+    g.restore();
+    g.translate(cx, cy); g.rotate(tilt); g.translate(-cx, -cy);
+    ringArc(-Math.PI*0.98, -Math.PI*0.02);
+  });
+  return c.toDataURL('image/png');
+}
+function nodeURL(px, tint){
+  var W = Math.round(px*1.5), H = W;
+  var c = texCanvas(W, H, function(g){
+    var cx = W/2, cy = H/2, r = px/2;
+    g.shadowColor = 'rgba(' + tint + ',0.8)'; g.shadowBlur = px*0.12;
+    for (var i = 0; i < 7; i++){
+      var a0 = Math.random()*Math.PI*2;
+      var rr = r*(0.25 + i*0.11);
+      g.strokeStyle = 'rgba(235,238,245,' + (0.5 - i*0.055) + ')';
+      g.lineWidth = 1.4 + Math.random()*1.6;
+      g.beginPath();
+      g.arc(cx + Math.cos(a0)*r*0.06, cy + Math.sin(a0)*r*0.06, rr, a0, a0 + Math.PI*(1.1 + Math.random()*0.5));
+      g.stroke();
+    }
+    g.shadowBlur = 0;
+    var core = g.createRadialGradient(cx,cy,0,cx,cy,r*0.5);
+    core.addColorStop(0,'rgba(' + tint + ',0.5)');
+    core.addColorStop(1,'rgba(' + tint + ',0)');
+    g.fillStyle = core;
+    g.beginPath(); g.arc(cx,cy,r*0.5,0,Math.PI*2); g.fill();
+  });
+  return c.toDataURL('image/png');
+}
+
+/* the Rising emblem: the EMERGE four-pointed spark, gold, softly haloed */
+function risingURL(px){
+  var W = Math.round(px*1.5), H = W;
+  var c = texCanvas(W, H, function(g){
+    var cx = W/2, cy = H/2, r = px/2;
+    var halo = g.createRadialGradient(cx,cy,0, cx,cy,r*1.35);
+    halo.addColorStop(0,'rgba(255,228,155,0.55)');
+    halo.addColorStop(0.5,'rgba(242,200,110,0.18)');
+    halo.addColorStop(1,'rgba(242,200,110,0)');
+    g.fillStyle = halo; g.fillRect(0,0,W,H);
+    g.fillStyle = '#F2DFAE';
+    g.shadowColor = 'rgba(240,209,138,0.9)'; g.shadowBlur = px*0.16;
+    g.beginPath();
+    g.moveTo(cx, cy - r);
+    g.quadraticCurveTo(cx + r*0.10, cy - r*0.10, cx + r, cy);
+    g.quadraticCurveTo(cx + r*0.10, cy + r*0.10, cx, cy + r);
+    g.quadraticCurveTo(cx - r*0.10, cy + r*0.10, cx - r, cy);
+    g.quadraticCurveTo(cx - r*0.10, cy - r*0.10, cx, cy - r);
+    g.fill();
+    g.shadowBlur = 0;
+  });
+  return c.toDataURL('image/png');
+}
+
+/* v19.14: genesis planets now use the SAME renderer as the chart tokens */
 const GN_STYLE = {
   Sun:     { c:'#F5A623', sz:30, mat:'radial-gradient(circle at 40% 36%, #FFF3C4 0%, #FFD24D 30%, #F5A623 58%, #C86A0E 85%)', anim:'sunlive 3.2s ease-in-out infinite' },
   Moon:    { c:'#E8EAF0', sz:15, mat:'radial-gradient(circle at 62% 30%, #4a4d55 4%, transparent 9%), radial-gradient(circle at 34% 58%, #52555e 3%, transparent 7%), radial-gradient(circle at 34% 30%, #FDFEFF 0%, #C9CDD6 45%, #6E727E 80%)' },
@@ -1710,20 +1943,19 @@ function runGenesis(){
   const prof = window.EMERGE_PROFILE;
   const bodies = (prof ? prof.planets : []).map((pl, i) => {
     const sty = GN_STYLE[pl.name] || GN_STYLE.Mercury;
-    const el = document.createElement('div');
+    const px = sty.sz*2;
+    const url = pl.name === 'Saturn' ? saturnURL(px)
+              : pl.name === 'Rahu'   ? nodeURL(px, '150,110,220')
+              : pl.name === 'Ketu'   ? nodeURL(px, '90,200,180')
+              : discURL(pl.name, px);
+    const iw = pl.name === 'Saturn' ? px*2.1 : (pl.name === 'Sun' ? px*2.8 : px*1.5);
+    const ih = pl.name === 'Saturn' ? px*1.35 : iw;
+    const el = document.createElement('img');
     el.className = 'gn-body';
-    el.style.width = el.style.height = sty.sz*2 + 'px';
-    el.style.background = sty.mat;
-    el.style.boxShadow = 'inset ' + (-sty.sz*.5) + 'px ' + (-sty.sz*.4) + 'px ' + (sty.sz*.8)
-      + 'px rgba(0,0,8,.7), 0 0 ' + (sty.sz*1.6) + 'px ' + sty.c;
-    if (sty.anim) el.style.animation = sty.anim;
-    if (sty.ringed){
-      const rg = document.createElement('div');
-      rg.style.cssText = 'position:absolute;left:50%;top:50%;width:196%;height:54%;'
-        + 'border:2px solid rgba(226,206,160,.8);border-radius:50%;'
-        + 'transform:translate(-50%,-50%) rotate(-18deg);box-shadow:0 0 6px rgba(216,196,154,.5);';
-      el.appendChild(rg);
-    }
+    el.src = url;
+    el.style.width = iw + 'px'; el.style.height = ih + 'px';
+    el.style.borderRadius = '0';
+    if (pl.name === 'Sun') el.style.animation = 'sunlive 3.2s ease-in-out infinite';
     el.style.opacity = 0;
     st.appendChild(el);
     // true position on the ecliptic band (screen angle from real longitude)
@@ -1733,7 +1965,7 @@ function runGenesis(){
     // entrance: drift in from a far point on a soft curve
     const ea = Math.random()*Math.PI*2;
     const sx = tx + Math.cos(ea)*vw*0.55, sy = ty + Math.sin(ea)*vh*0.45;
-    return { el, sty, tx, ty, sx, sy, delay: 0.30 + i*0.22, dur: 1.2, locked:false, seed: Math.random()*10 };
+    return { el, sty, iw, ih, tx, ty, sx, sy, delay: 0.30 + i*0.22, dur: 1.2, locked:false, seed: Math.random()*10 };
   });
 
   const t0 = performance.now();
@@ -1757,7 +1989,7 @@ function runGenesis(){
       const fx = px + bowX + fl*Math.sin(t*0.9 + b.seed*7)*2.2;
       const fy = py + bowY + fl*Math.cos(t*0.7 + b.seed*5)*2.2;
       b.el.style.opacity = Math.min(p*3, 1).toFixed(2);
-      b.el.style.transform = 'translate(' + (fx - b.sty.sz).toFixed(1) + 'px,' + (fy - b.sty.sz).toFixed(1) + 'px)';
+      b.el.style.transform = 'translate(' + (fx - b.iw/2).toFixed(1) + 'px,' + (fy - b.ih/2).toFixed(1) + 'px)';
       // comet dust while traveling
       if (p > 0 && p < 1 && now - lastTrail > 70){
         const d = document.createElement('div');
