@@ -569,7 +569,7 @@
   .rp-sum-ic svg { width:24px; height:24px; display:block; }
   .rp-sum-row h3 { margin:2px 0 7px; }
 </style>
-<script src="emerge-sound.js?v=14"></script>
+<script src="emerge-sound.js?v=16"></script>
 </head>
 <body>
 <div id="stage"></div>
@@ -734,7 +734,7 @@ var BIRTH = __ok ? {
 console.log('[EMERGE FLOW] 5. sidereal-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 document.getElementById('stamp').textContent =
-  'SIDEREAL v19.19 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'SIDEREAL v19.21 · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }
