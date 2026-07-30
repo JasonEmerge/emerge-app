@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.14 · chart planets in genesis</div>
+<div id="ver">SCENE 1 · v19.15 · chart planets in genesis</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1663,6 +1663,7 @@ function computeGenesisProfile(system){
   });
 })();
 
+const DEG = Math.PI/180;   /* required by the ported renderer */
 /* ============================================================
    PLANET DISC RENDERER — dimensional bodies for the wheel
    (procedural; canvas-shaded spheres, embedded as data URLs)
