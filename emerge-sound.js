@@ -15,7 +15,6 @@
 
   var FILES = {
     voidatm:      '01_void_atmosphere.wav',
-    motion:       '02_phone_motion_bend_FINAL.wav',
     fold:         '03_c_vacuum_fold.wav',
     tap:          '23_tap_boom.wav',    /* single boom — the tap is one soft pulse */
     growth:       '06_earth_growth_no_rising_tone.wav',
@@ -33,17 +32,16 @@
     ascension:    '20_ascension_final.wav',
     drawbed:      '01_void_atmosphere.wav'   /* void reused as chart-drawing bed */
   };
-  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1, drawbed:1 };
+  var IS_LOOP = { voidatm:1, orbit:1, calc:1, hum:1, choice:1, drawbed:1 };
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '10';
+  var AUDIO_VER = '11';
   var ENGINE_VER = '13';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */
   var voidGain = null;              /* remembered for ducking */
-  var motionLevel = 0, motionRAF = 0, lastMotion = 0;
 
   function ready(){ return ctx && ctx.state === 'running'; }
 
@@ -119,8 +117,8 @@
     var t = ctx.currentTime;
     var g = ctx.createGain();
     g.gain.setValueAtTime(0.0, t);
-    g.gain.linearRampToValueAtTime(0.20, t + 0.002);
-    g.gain.setValueAtTime(0.20, t + 0.018);
+    g.gain.linearRampToValueAtTime(0.14, t + 0.002);
+    g.gain.setValueAtTime(0.14, t + 0.018);
     g.gain.exponentialRampToValueAtTime(0.0005, t + 0.085);
     g.connect(master);
     var o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = 620;
@@ -209,25 +207,7 @@
     for (var k in loops) if (loops[k]) stopLoop(k, 0.35);
   }
 
-  /* movement expressed via gain only: touch / gyro pushes the motion bed up,
-     silence lets it fall away */
-  function motionDecay(){
-    motionRAF = 0;
-    if (!loops.motion) return;
-    var now = performance.now();
-    var idle = now - lastMotion;
-    if (idle > 140) motionLevel = Math.max(0, motionLevel - 0.028);
-    try { loops.motion.gain.gain.setTargetAtTime(motionLevel, ctx.currentTime, 0.08); } catch(_){}
-    if (motionLevel > 0.001) motionRAF = requestAnimationFrame(motionDecay);
-  }
-  function motion(strength){
-    if (!ready()) return;
-    if (!loops.motion) startLoop('motion');
-    lastMotion = performance.now();
-    var s = (typeof strength === 'number') ? strength : 0.5;
-    motionLevel = Math.min(1, motionLevel + 0.10 * s + 0.04);
-    if (!motionRAF) motionRAF = requestAnimationFrame(motionDecay);
-  }
+  function motion(){ /* motion bed retired per Jason — the wave whoosh */ }
 
   /* event-driven sync to the real drawing timeline: each named cue fires
      exactly once when t crosses its threshold */

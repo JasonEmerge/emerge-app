@@ -557,7 +557,7 @@
   .rp-sum-ic svg { width:24px; height:24px; display:block; }
   .rp-sum-row h3 { margin:2px 0 7px; }
 </style>
-<script src="emerge-sound.js?v=13"></script>
+<script src="emerge-sound.js?v=14"></script>
 </head>
 <body>
 <div id="stage"></div>
@@ -723,7 +723,7 @@ console.log('[EMERGE FLOW] 5. tropical-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 console.log('[EMERGE FLOW] 6. calculation branch: TROPICAL — no ayanamsa (true tropical longitudes)');
 document.getElementById('stamp').textContent =
-  'TROPICAL v18.27 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'TROPICAL v18.28 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }

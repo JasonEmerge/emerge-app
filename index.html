@@ -422,7 +422,7 @@
 
 
 </style>
-<script src="emerge-sound.js?v=13"></script>
+<script src="emerge-sound.js?v=14"></script>
 </head>
 <body>
 <div id="stars"></div>
@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.19</div>
+<div id="ver">SCENE 1 · v19.20 · sound tweaks</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -730,7 +730,6 @@ if (typeof Globe === 'undefined') {
     if (h == null || e.beta == null) return;
     if (!gyro) console.log('[SKY] gyro live — compass steering engaged');
     gyro = true; tYaw = h;
-    try { EMERGE_SOUND.motion(0.25); } catch(_){}
     // natural reading angle (~beta 50°) looks just above the horizon;
     // tilting the phone up toward the sky sweeps the view to the zenith
     tPitch = Math.max(-25, Math.min(85, e.beta - 38));
@@ -767,7 +766,6 @@ if (typeof Globe === 'undefined') {
       yawOff -= (e.clientX - drag.x) * s;
       pitchOff = Math.max(-75, Math.min(80, pitchOff + (e.clientY - drag.y) * s * 0.85));
       drag.x = e.clientX; drag.y = e.clientY;
-      try { EMERGE_SOUND.motion(0.6); } catch(_){}
     }
   }, { passive:true });
   const endDrag = e => { if (drag && e.pointerId === drag.id) drag = null; };
