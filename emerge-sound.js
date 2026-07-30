@@ -244,6 +244,20 @@
     try { navigator.vibrate && navigator.vibrate(ms || 10); } catch(_){}
   }
 
+  /* iOS grants audio on finger-UP (touchend/click), not finger-down.
+     Arm every gesture type and keep retrying until the context runs. */
+  (function armUnlock(){
+    var evs = ['touchend', 'click', 'pointerdown', 'keydown'];
+    function h(){
+      unlock();
+      setTimeout(function(){
+        if (ctx && ctx.state === 'running')
+          evs.forEach(function(e){ window.removeEventListener(e, h, true); });
+      }, 50);
+    }
+    evs.forEach(function(e){ window.addEventListener(e, h, true); });
+  })();
+
   window.EMERGE_SOUND = {
     unlock: unlock, play: play, grain: grain,
     loop: startLoop, stopLoop: stopLoop, stopAll: stopAll,
