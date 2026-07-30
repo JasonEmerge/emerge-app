@@ -557,7 +557,7 @@
   .rp-sum-ic svg { width:24px; height:24px; display:block; }
   .rp-sum-row h3 { margin:2px 0 7px; }
 </style>
-<script src="emerge-sound.js?v=5"></script>
+<script src="emerge-sound.js?v=6"></script>
 </head>
 <body>
 <div id="stage"></div>
@@ -723,7 +723,7 @@ console.log('[EMERGE FLOW] 5. tropical-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 console.log('[EMERGE FLOW] 6. calculation branch: TROPICAL — no ayanamsa (true tropical longitudes)');
 document.getElementById('stamp').textContent =
-  'TROPICAL v18.20 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'TROPICAL v18.21 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }
@@ -1429,7 +1429,7 @@ var t0 = null;
 function frame(now){
   requestAnimationFrame(frame);
   var t = (t0 === null) ? 0 : (now - t0)/1000*SPEED;
-  try { EMERGE_SOUND.tick({ construction: T.axes, sweep: T.sweepA, tokens: T.bodyA }, t); } catch(_){}
+  try { EMERGE_SOUND.tick({ music: T.coordsIn, construction: T.axes, sweep: T.sweepA, tokens: T.bodyA }, t); } catch(_){}
 
   /* background drifts forever */
   camera.rotation.y = 0.35 + t*0.0045;
@@ -2615,7 +2615,7 @@ function buildResultPage(){
 function openCompleteChartResult(){
   if (resultOpened) return;
   resultOpened = true;
-  try { EMERGE_SOUND.loop('hum'); } catch(_){}
+  try { EMERGE_SOUND.stopLoop('music', 2.5); EMERGE_SOUND.loop('hum'); } catch(_){}
   revealBtn.setAttribute('disabled', 'true');
   if (!resultBuilt){
     try { buildResultPage(); resultBuilt = true; }
@@ -2665,7 +2665,7 @@ function stageCardShell(){
 function finishRevealTransition(fadeMs){
   if (resultOpened) return;
   resultOpened = true;
-  try { EMERGE_SOUND.loop('hum'); } catch(_){}
+  try { EMERGE_SOUND.stopLoop('music', 2.5); EMERGE_SOUND.loop('hum'); } catch(_){}
   bodyEl.classList.add('result-leaving');
   window.setTimeout(function(){
     summaryTick = null;

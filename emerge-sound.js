@@ -31,13 +31,14 @@
     impact:       '17_final_reveal_clean_impact.wav',
     hum:          '18_reading_hum_plus_20.wav',
     choice:       '19_two_perspectives.wav',
-    ascension:    '20_ascension_final.wav'
+    ascension:    '20_ascension_final.wav',
+    music:        '21_chart_music_bells.wav'
   };
-  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1 };
+  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1, music:1 };
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '5';   /* bump on ANY wav content change — defeats stale wav caching */
+  var AUDIO_VER = '6';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */
@@ -162,9 +163,10 @@
     n.src.loop = true;
     var t = ctx.currentTime;
     var target = (name === 'motion') ? 0.0 : 1.0;  /* motion bed rides intensity */
+    var fadeIn = (name === 'music') ? 3.5 : 0.9;   /* the bells drift in, not arrive */
     try {
       n.gain.gain.setValueAtTime(0.0, t);
-      n.gain.gain.linearRampToValueAtTime(target, t + 0.9);
+      n.gain.gain.linearRampToValueAtTime(target, t + fadeIn);
       n.src.start(0);
     } catch(_){}
     loops[name] = n;
@@ -217,7 +219,8 @@
     for (var key in map){
       if (!fired[key] && t >= map[key]){
         fired[key] = true;
-        play(key, pans && (key in pans) ? { pan: pans[key] } : undefined);
+        if (IS_LOOP[key]) startLoop(key);
+        else play(key, pans && (key in pans) ? { pan: pans[key] } : undefined);
       }
     }
   }
