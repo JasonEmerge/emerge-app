@@ -17,8 +17,7 @@
     voidatm:      '01_void_atmosphere.wav',
     motion:       '02_phone_motion_bend_FINAL.wav',
     fold:         '03_c_vacuum_fold.wav',
-    tap:          '04_tap_to_emerge_v3_quieter.wav',
-    dot:          '05_blue_dot_v3_very_faint.wav',
+    tap:          '23_tap_boom.wav',    /* single boom — the tap is one soft pulse */
     growth:       '06_earth_growth_no_rising_tone.wav',
     arrival:      '07_earth_arrival.wav',
     orbit:        '08_earth_rotation_silent_orbit_FINAL.wav',
@@ -38,7 +37,7 @@
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '8';   /* bump on ANY wav content change — defeats stale wav caching */
+  var AUDIO_VER = '10';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */

@@ -422,7 +422,7 @@
 
 
 </style>
-<script src="emerge-sound.js?v=7"></script>
+<script src="emerge-sound.js?v=10"></script>
 </head>
 <body>
 <div id="stars"></div>
@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.11 · sound v4b</div>
+<div id="ver">SCENE 1 · v19.13 · sound v5b</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1092,7 +1092,7 @@ function startEarthBirth(){
   document.getElementById('globeViz').style.opacity = '1';
   try { world.atmosphereAltitude(0.005); } catch(_){}
   earthBirthStart = performance.now();
-  try { EMERGE_SOUND.play('dot'); EMERGE_SOUND.play('growth'); } catch(_){}
+  try { EMERGE_SOUND.play('growth'); } catch(_){}   /* dot chime removed — pulse then Earth */
   window.__earthBirth = earthBirthStart + 1100;   // energy motes ride the energy stage
   requestAnimationFrame(birthFrame);
 }
