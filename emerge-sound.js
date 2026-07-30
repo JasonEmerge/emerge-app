@@ -31,13 +31,14 @@
     impact:       '17_final_reveal_clean_impact.wav',
     hum:          '18_reading_hum_plus_20.wav',
     choice:       '19_two_perspectives.wav',
-    ascension:    '20_ascension_final.wav'
+    ascension:    '20_ascension_final.wav',
+    drawbed:      '01_void_atmosphere.wav'   /* void reused as chart-drawing bed */
   };
-  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1 };
+  var IS_LOOP = { voidatm:1, motion:1, orbit:1, calc:1, hum:1, choice:1, drawbed:1 };
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '7';   /* bump on ANY wav content change — defeats stale wav caching */
+  var AUDIO_VER = '8';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */
@@ -162,7 +163,7 @@
     n.src.loop = true;
     var t = ctx.currentTime;
     var target = (name === 'motion') ? 0.0 : 1.0;  /* motion bed rides intensity */
-    var fadeIn = (name === 'music') ? 3.5 : 0.9;   /* the bells drift in, not arrive */
+    var fadeIn = (name === 'music' || name === 'drawbed') ? 4.5 : 0.9;   /* beds drift in, not arrive */
     try {
       n.gain.gain.setValueAtTime(0.0, t);
       n.gain.gain.linearRampToValueAtTime(target, t + fadeIn);
