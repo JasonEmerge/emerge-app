@@ -510,7 +510,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.15 · chart planets in genesis</div>
+<div id="ver">SCENE 1 · v19.16 · chart planets in genesis</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1956,7 +1956,6 @@ function runGenesis(){
     el.src = url;
     el.style.width = iw + 'px'; el.style.height = ih + 'px';
     el.style.borderRadius = '0';
-    if (pl.name === 'Sun') el.style.animation = 'sunlive 3.2s ease-in-out infinite';
     el.style.opacity = 0;
     st.appendChild(el);
     // true position on the ecliptic band (screen angle from real longitude)
