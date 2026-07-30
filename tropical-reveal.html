@@ -723,19 +723,9 @@ console.log('[EMERGE FLOW] 5. tropical-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 console.log('[EMERGE FLOW] 6. calculation branch: TROPICAL — no ayanamsa (true tropical longitudes)');
 document.getElementById('stamp').textContent =
-  'TROPICAL v18.26 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'TROPICAL v18.27 · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
-
-/* TEMP DIAG: live audio state in the stamp — remove once phone audio verified */
-setInterval(function(){
-  try {
-    var st = document.getElementById('stamp');
-    var base = st.textContent.split(' \u00b7 snd')[0];
-    var info = (window.EMERGE_SOUND && EMERGE_SOUND.status) ? EMERGE_SOUND.status() : 'snd OLD-ENGINE';
-    st.textContent = base + ' \u00b7 ' + info;
-  } catch(_){}
-}, 600);
 function norm360(d){ d %= 360; return d < 0 ? d + 360 : d; }
 function norm24(h){ h %= 24; return h < 0 ? h + 24 : h; }
 function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
