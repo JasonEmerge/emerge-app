@@ -37,7 +37,8 @@
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '10';   /* bump on ANY wav content change — defeats stale wav caching */
+  var AUDIO_VER = '10';
+  var ENGINE_VER = '13';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
   var fired = {};                   /* timeline cues fired once per page */
@@ -247,20 +248,25 @@
   /* iOS grants audio on finger-UP (touchend/click), not finger-down.
      Arm every gesture type and keep retrying until the context runs. */
   (function armUnlock(){
-    var evs = ['touchend', 'click', 'pointerdown', 'keydown'];
+    var evs = ['touchend', 'touchstart', 'click', 'pointerdown', 'pointerup', 'keydown'];
     function h(){
-      unlock();
-      setTimeout(function(){
+      try {
+        unlock();
+        if (ctx && ctx.state !== 'running') ctx.resume();
         if (ctx && ctx.state === 'running')
-          evs.forEach(function(e){ window.removeEventListener(e, h, true); });
-      }, 50);
+          evs.forEach(function(e){ window.removeEventListener(e, h, { capture:true } ); });
+      } catch(_){}
     }
-    evs.forEach(function(e){ window.addEventListener(e, h, true); });
+    evs.forEach(function(e){ window.addEventListener(e, h, { capture:true, passive:false }); });
   })();
+
+  function status(){
+    return 'snd e' + ENGINE_VER + ' ' + (ctx ? ctx.state : 'no-ctx');
+  }
 
   window.EMERGE_SOUND = {
     unlock: unlock, play: play, grain: grain,
     loop: startLoop, stopLoop: stopLoop, stopAll: stopAll,
-    motion: motion, tick: tick, haptic: haptic, numpulse: numpulse
+    motion: motion, tick: tick, haptic: haptic, numpulse: numpulse, status: status
   };
 })();
