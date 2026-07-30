@@ -36,7 +36,7 @@
   /* one-shots that briefly duck the void bed so they read clearly */
   var DUCKS   = { found:1, harmony:1, arrival:1, impact:1, fold:1, ascension:1 };
 
-  var AUDIO_VER = '11';
+  var AUDIO_VER = '13';
   var ENGINE_VER = '13';   /* bump on ANY wav content change — defeats stale wav caching */
   var ctx = null, master = null, limiter = null;
   var buffers = {}, loading = {}, loops = {}, wantLoop = {};
@@ -117,8 +117,8 @@
     var t = ctx.currentTime;
     var g = ctx.createGain();
     g.gain.setValueAtTime(0.0, t);
-    g.gain.linearRampToValueAtTime(0.14, t + 0.002);
-    g.gain.setValueAtTime(0.14, t + 0.018);
+    g.gain.linearRampToValueAtTime(0.085, t + 0.002);
+    g.gain.setValueAtTime(0.085, t + 0.018);
     g.gain.exponentialRampToValueAtTime(0.0005, t + 0.085);
     g.connect(master);
     var o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = 620;
