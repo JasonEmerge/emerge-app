@@ -77,7 +77,7 @@
   #finale.ready .fn-sub      { opacity:1; transform:none; transition-delay:.08s; }
   #finale.ready .fn-pill     { opacity:1; transform:none; transition-delay:.10s; }
   #finale.ready .fn-hint     { opacity:1; transform:none; transition-delay:.14s; }
-  #finale .fn-logo { width:min(42vw,180px); margin-bottom:6px;   /* v19.45: v19.43 layout, -20% size */
+  #finale .fn-logo { width:min(40vw,171px); margin-top:5vh; margin-bottom:6px;   /* v19.47: -5%, lowered 5vh */
     filter:drop-shadow(0 0 14px rgba(214,169,134,.28)); }
   #finale .fn-discover { font-family:Georgia,'Times New Roman',serif; font-style:italic;
     font-size:19px; color:var(--emerge-champagne-light); letter-spacing:.06em;
@@ -164,8 +164,8 @@
 <style>
 /* ---------- v12 SINGLE-SCENE LOCATION ENTRY ---------- */
 #finale .fn-pill, #finale .fn-hint { transition:opacity .45s ease, transform .45s ease; }
-#finale.searching .fn-pill, #finale.searching .fn-hint {
-  opacity:0; transform:translateY(-6px); pointer-events:none; }
+#finale .fn-pill { pointer-events:none; }  /* v19.46: pill is the banner, box opens with it */
+#search-head { display:none; }               /* v19.46: pill carries the prompt, no duplicate */
 #searchwrap { display:none; pointer-events:auto; position:relative;
   width:min(86vw,460px); margin:6px auto 0; opacity:0; transition:opacity .6s ease; }
 #searchwrap.on { display:block; }
@@ -470,7 +470,6 @@
     </div>
     <div id="dropdown"></div>
   </div>
-  <div class="fn-hint">The first step to generating your chart.</div>
 </div>
 
 <div id="curtain">
@@ -542,7 +541,7 @@
   </div>
 </div>
 
-<div id="ver">SCENE 1 · v19.45 · v19.43 + smaller finale logo</div>
+<div id="ver">SCENE 1 · v19.48 · cursor in the box</div>
 
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
@@ -1300,14 +1299,22 @@ function sceneComplete(){
   const dropEl   = document.getElementById('dropdown');
   let chosen = false;
 
-  pillEl.addEventListener('click', () => {
+  // v19.46: prompt banner and location box appear together, matching the date/time steps
+  function openSearch(){
     if (finaleEl.classList.contains('searching')) return;
     finaleEl.classList.add('searching');
     wrapEl.classList.add('on');
     requestAnimationFrame(() => requestAnimationFrame(() => wrapEl.classList.add('vis')));
-    inputEl.focus({ preventScroll:true });
-    console.log('[EMERGE FLOW] 2. birthplace tap — interface morphs to search, scene unchanged');
-  });
+    setTimeout(() => { try { inputEl.focus({ preventScroll:true }); } catch(_){} }, 900);  /* v19.48: cursor ready in the box */
+    console.log('[EMERGE FLOW] 2. birthplace prompt + search shown together, cursor placed');
+  }
+  if (finaleEl.classList.contains('ready')) openSearch();
+  else {
+    const obs = new MutationObserver(() => {
+      if (finaleEl.classList.contains('ready')) { obs.disconnect(); openSearch(); }
+    });
+    obs.observe(finaleEl, { attributes:true, attributeFilter:['class'] });
+  }
 
   let timer = null;
   inputEl.addEventListener('input', () => {
