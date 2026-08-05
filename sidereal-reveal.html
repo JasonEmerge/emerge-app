@@ -549,6 +549,18 @@
   #unlockCompleteReading:active { transform:scale(1.01); }
   #unlockCompleteReading:focus-visible { outline:2px solid rgba(230,200,135,0.85); outline-offset:4px; }
   #unlockCompleteReading span:last-child { display:inline-block; margin-left:6px; }
+
+  /* ===== v19.22: UNLOCK -> DASHBOARD FINALE ===== */
+  #unlockDash { position:fixed; inset:0; z-index:80; background:#04060b;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    opacity:0; visibility:hidden; transition:opacity 1.4s ease, visibility 0s linear 1.4s; }
+  #unlockDash.is-visible { opacity:1; visibility:visible; transition:opacity 1.4s ease; }
+  #unlockDash img { display:block; width:100%; height:auto; opacity:0; transform:translateY(26px);
+    transition:opacity 1.6s ease, transform 2.1s cubic-bezier(0.22,0.61,0.36,1); }
+  #unlockDash.is-visible img { opacity:1; transform:translateY(0); }
+  body.unlock-leaving #resultPage, body.unlock-leaving #summaryStage {
+    opacity:0 !important; transform:scale(0.985);
+    transition:opacity 1.1s ease, transform 1.1s ease; }
   @media (max-width:370px){
     .rp-details { flex-wrap:wrap; }
     .rp-dcell { flex:1 1 46%; padding:6px; }
@@ -569,7 +581,7 @@
   .rp-sum-ic svg { width:24px; height:24px; display:block; }
   .rp-sum-row h3 { margin:2px 0 7px; }
 </style>
-<script src="emerge-sound.js?v=13"></script>
+<script src="emerge-sound.js?v=16"></script>
 </head>
 <body>
 <div id="stage"></div>
@@ -734,7 +746,7 @@ var BIRTH = __ok ? {
 console.log('[EMERGE FLOW] 5. sidereal-reveal — system in storage:',
             SAVED && SAVED.system, '| data:', __ok ? 'user birth data' : 'QA fallback');
 document.getElementById('stamp').textContent =
-  'SIDEREAL v19.17-coz · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
+  'SIDEREAL v19.22 dash · LAHIRI · d1 · data:' + ((SAVED && SAVED.system) || 'none');
 
 var DEG = Math.PI/180, RAD = 180/Math.PI;
 
@@ -2608,6 +2620,40 @@ function openCompleteChartResult(){
     window.dispatchEvent(new CustomEvent('EMERGE_FREE_SUMMARY_COMPLETE'));
   }, REDUCED ? 0 : 650);
 }
+/* ===== v19.22: UNLOCK -> DASHBOARD FINALE =====
+   Both unlock prompts now end on the new dashboard page: the current
+   screen sinks away and the CozAlyze dashboard rises in as the last
+   part of the animation. Listens on the existing unlock event so both
+   buttons (summary CTA + result page) trigger it unchanged. */
+var DASH_SRC = 'dashboard.jpeg?v=1';
+var dashOverlay = null, dashStarted = false;
+function buildDashOverlay(){
+  if (dashOverlay) return dashOverlay;
+  dashOverlay = document.createElement('div');
+  dashOverlay.id = 'unlockDash';
+  var im = document.createElement('img');
+  im.src = DASH_SRC;
+  im.alt = 'CozAlyze — Discover yourself through multiple perspectives';
+  dashOverlay.appendChild(im);
+  document.body.appendChild(dashOverlay);
+  return dashOverlay;
+}
+function startUnlockTransition(){
+  if (dashStarted) return;
+  dashStarted = true;
+  try { EMERGE_SOUND.play('impact'); EMERGE_SOUND.haptic(10); } catch(_){}
+  var ov = buildDashOverlay();
+  bodyEl.classList.add('unlock-leaving');
+  window.setTimeout(function(){
+    ov.classList.add('is-visible');
+    ov.scrollTop = 0;
+    console.log('[EMERGE FLOW] 9. unlock -> dashboard finale');
+  }, REDUCED ? 0 : 550);
+}
+window.addEventListener('EMERGE_UNLOCK_READING_REQUESTED', startUnlockTransition);
+window.setTimeout(function(){ try { (new Image()).src = DASH_SRC; } catch(_){} }, 4000);  /* preload after the drawing settles */
+/* ===== END v19.22: UNLOCK -> DASHBOARD FINALE ===== */
+
 unlockBtn.addEventListener('click', function(){
   window.dispatchEvent(new CustomEvent('EMERGE_UNLOCK_READING_REQUESTED'));
   console.log('[EMERGE FLOW] 8. combined result -> unlock complete reading requested');
